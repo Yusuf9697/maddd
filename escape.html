@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Special Message for-ayaa</title>
+    <style>
+        :root {
+            --pink-utama: #ffafcc;
+            --pink-gelap: #fb6f92;
+            --pink-surat: #fff0f3;
+        }
+
+        body {
+            background-color: #ffe5ec;
+            font-family: 'Georgia', serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        /* Pojok Kanan Atas */
+        .watermark {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #fb6f92;
+            letter-spacing: 1px;
+            opacity: 0.6;
+            z-index: 100;
+        }
+
+        /* Container Amplop */
+        .envelope-wrapper {
+            position: relative;
+            cursor: pointer;
+            width: 280px;
+            height: 180px;
+            z-index: 10;
+        }
+
+        .envelope {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background-color: var(--pink-utama);
+            border-radius: 0 0 15px 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .from-to {
+            font-weight: bold;
+            color: white;
+            font-size: 16px;
+            text-align: center;
+            z-index: 5;
+            line-height: 1.4;
+        }
+
+        /* Tutup Amplop */
+        .flap {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-left: 140px solid transparent;
+            border-right: 140px solid transparent;
+            border-top: 100px solid #fb6f92;
+            transform-origin: top;
+            transition: transform 0.6s ease-in-out;
+            z-index: 10;
+        }
+
+        .envelope-wrapper.open .flap {
+            transform: rotateX(180deg);
+            z-index: 0;
+        }
+
+        .heart-lock {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 35px;
+            z-index: 11;
+            animation: beat 1s infinite;
+        }
+
+        /* Isi Surat */
+        .container {
+            display: none;
+            background-color: #fff;
+            background-image: radial-gradient(#ffd1dc 1px, transparent 1px);
+            background-size: 20px 20px;
+            padding: 40px 30px;
+            border-radius: 5px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.1), inset 0 0 100px rgba(255,182,193,0.2);
+            text-align: center;
+            max-width: 85%;
+            animation: slideUp 1s ease forwards;
+            border: 10px solid white;
+            position: relative;
+        }
+
+        /* Animasi Hati Melayang */
+        .floating-heart {
+            position: absolute;
+            color: #fb6f92;
+            font-size: 20px;
+            opacity: 0;
+            animation: float 3s infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0) scale(1); opacity: 0; }
+            50% { opacity: 0.8; }
+            100% { transform: translateY(-100px) scale(1.5); opacity: 0; }
+        }
+
+        @keyframes beat { 
+            0%, 100% { transform: translateX(-50%) scale(1); } 
+            50% { transform: translateX(-50%) scale(1.2); } 
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(200px) scale(0.8); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        h1 { color: #d63384; font-size: 24px; margin-bottom: 20px; }
+        .typing-text { color: #444; font-size: 18px; line-height: 1.6; font-style: italic; white-space: pre-wrap; }
+
+        .btn {
+            display: none;
+            background: #fb6f92;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 30px;
+            border: 2px solid #d63384;
+            transition: 0.3s;
+            box-shadow: 0 5px 15px rgba(251, 111, 146, 0.3);
+        }
+
+        .btn:hover { background: #d63384; transform: scale(1.05); }
+    </style>
+</head>
+<body>
+
+    <div class="watermark">DEV•MADD</div>
+
+    <div class="envelope-wrapper" id="envelopeWrapper" onclick="mulaiBuka()">
+        <div class="flap"></div>
+        <div class="heart-lock">❤️</div>
+        <div class="envelope">
+            <div class="from-to">FROM MADD<br>FOR AYA</div>
+        </div>
+    </div>
+
+    <div class="container" id="mainContent">
+        <div class="floating-heart" style="left: 10%; animation-delay: 0s;">❤️</div>
+        <div class="floating-heart" style="right: 15%; animation-delay: 1s;">💖</div>
+        <div class="floating-heart" style="left: 50%; animation-delay: 2s;">💗</div>
+        
+        <h1 id="headline"></h1>
+        <p class="typing-text" id="textSurat"></p>
+        <a href="https://wa.me?6282245217658" class="btn" id="waBtn">KLIK GAK </a>
+    </div>
+
+    <script>
+        const titleText = "Haii ayaa . ✨";
+        const messageText = "hai apa kabar minal aidin wal faizin ya mohon maaf lahir batin maaf ya kalo selama ini aku ada salah atau pernah bikin kamu gak nyaman jujur momen lebaran gini malah bikin aku makin kepikiran sama kamu and semua yang pernah kita laluin bareng ternyata setelah sekian lama aku sadar kalo posisi kamu emang gak tergantikan aku kangen kita yang dulu kangen ngobrol lama kangen bercanda bareng kamu juga kalo kamu masih ada ruang di hati buat aku gimana kalo kitaaa baliikann aku pengen banget kita bisa balik bareng dan perbaiki semuanya mumpung hari baik nih aku pengen kita mulai lembaran baru lagi bareng-bareng jujur aku masih sayang banget sama kamu\n\n...\n\n";
+        
+        let i = 0; let j = 0;
+
+        function mulaiBuka() {
+            document.getElementById('envelopeWrapper').classList.add('open');
+            setTimeout(() => {
+                document.getElementById('envelopeWrapper').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+                typeHeadline();
+            }, 800);
+        }
+
+        function typeHeadline() {
+            if (i < titleText.length) {
+                document.getElementById("headline").innerHTML += titleText.charAt(i);
+                i++;
+                setTimeout(typeHeadline, 100);
+            } else {
+                setTimeout(typeMessage, 500);
+            }
+        }
+
+        function typeMessage() {
+            if (j < messageText.length) {
+                document.getElementById("textSurat").innerHTML += messageText.charAt(j);
+                j++;
+                setTimeout(typeMessage, 70);
+            } else {
+                document.getElementById("waBtn").style.display = "inline-block";
+            }
+        }
+    </script>
+</body>
+</html>
