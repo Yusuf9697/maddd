@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DEV-MAD | WA-Web Clone</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <style>
+        :root { --wa-bg: #0b141a; --wa-panel: #202c33; --wa-green: #00a884; --wa-text: #e9edef; --neon: #00ff41; }
+        body { background: var(--wa-bg); color: var(--wa-text); font-family: 'Segoe UI', Helvetica, sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        
+        /* Entrance */
+        #login { position: fixed; width: 100%; height: 100%; background: var(--wa-bg); display: flex; justify-content: center; align-items: center; z-index: 99; }
+        .login-card { background: var(--wa-panel); padding: 30px; border-radius: 10px; text-align: center; width: 300px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); }
+        
+        /* Main Layout */
+        #app { display: none; width: 100%; height: 100%; grid-template-columns: 350px 1fr; }
+        .sidebar { background: var(--wa-panel); border-right: 1px solid #3b4a54; display: flex; flex-direction: column; }
+        .chat-area { display: flex; flex-direction: column; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-color: #0b141a; }
+
+        /* Component */
+        .header { background: var(--wa-panel); padding: 15px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; border-bottom: 1px solid #3b4a54; }
+        .search-bar { padding: 10px; background: var(--wa-bg); }
+        input { width: 100%; padding: 10px; border: none; border-radius: 5px; background: #2a3942; color: white; box-sizing: border-box; }
+        input:focus { outline: none; }
+        
+        .chat-list { flex: 1; overflow-y: auto; }
+        .user-item { padding: 15px; border-bottom: 1px solid #222; cursor: pointer; transition: 0.2s; }
+        .user-item:hover { background: #2a3942; }
+
+        .messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .bubble { max-width: 60%; padding: 10px; border-radius: 10px; font-size: 14px; position: relative; }
+        .msg-me { align-self: flex-end; background: #005c4b; border-bottom-right-radius: 2px; }
+        .msg-them { align-self: flex-start; background: #202c33; border-bottom-left-radius: 2px; }
+
+        .input-area { background: var(--wa-panel); padding: 15px; display: flex; gap: 10px; }
+        .btn-send { background: var(--wa-green); border: none; padding: 10px 20px; color: white; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        
+        /* Admin Badge */
+        .badge-owner { color: var(--neon); font-size: 10px; border: 1px solid var(--neon); padding: 2px 5px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+
+    <div id="login">
+        <div class="login-card">
+            <h2 style="color: var(--wa-green);">DEV-MAD WA</h2>
+            <input type="text" id="nick" placeholder="Masukkan Nama Kamu...">
+            <button class="btn-send" style="width: 100%; margin-top: 15px;" onclick="startWA()">MASUK</button>
+        </div>
+    </div>
+
+    <div id="app">
+        <div class="sidebar">
+            <div class="header">
+                <span id="my-profile">User</span>
+                <span id="owner-tag" class="badge-owner" style="display:none;">OWNER</span>
+            </div>
+            <div class="search-bar">
+                <input type="text" id="search-user" placeholder="Cari ID/Nama User..." onkeyup="filterUser()">
+            </div>
+            <div class="chat-list" id="chat-list">
+                </div>
+        </div>
+
+        <div class="chat-area">
+            <div class="header" id="chat-target-name">Pilih User untuk Chat</div>
+            <div class="messages" id="msg-box">
+                <p style="text-align:center; color:#888;">Selamat Datang di DEV-MAD WhatsApp</p>
+            </div>
+            <div class="input-area">
+                <input type="text" id="msg-input" placeholder="Ketik pesan...">
+                <button class="btn-send" onclick="sendText()">KIRIM</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // CONFIG FIREBASE (WAJIB ISI!)
+        const firebaseConfig = { apiKey: "AIzaSy...", databaseURL: "https://project-id.firebaseio.com", projectId: "project-id" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let myName = "";
+        let targetChat = "Global";
+
+        function startWA() {
+            myName = document.getElementById('nick').value;
+            if(!myName) return alert("Nama wajib diisi!");
+            
+            document.getElementById('login').style.display = 'none';
+            document.getElementById('app').style.display = 'grid';
+            document.getElementById('my-profile').innerText = myName;
+
+            if(myName === "madzz-des") document.getElementById('owner-tag').style.display = 'block';
+
+            // Daftar user ke global "Online"
+            db.ref('presence/' + myName).set({ status: 'Online', lastSeen: Date.now() });
+
+            loadUserList();
+            loadMessages();
+        }
+
+        function loadUserList() {
+            db.ref('presence').on('value', (snap) => {
+                const list = document.getElementById('chat-list');
+                list.innerHTML = "";
+                snap.forEach((user) => {
+                    if(user.key !== myName) {
+                        list.innerHTML += `<div class="user-item" onclick="setTarget('${user.key}')">
+                            <strong>${user.key}</strong><br><small style="color:var(--wa-green)">Online</small>
+                        </div>`;
+                    }
+                });
+            });
+        }
+
+        function setTarget(name) {
+            targetChat = name;
+            document.getElementById('chat-target-name').innerText = name;
+            document.getElementById('msg-box').innerHTML = `<p style="text-align:center; color:#888;">Mulai Chat dengan ${name}</p>`;
+        }
+
+        function sendText() {
+            const txt = document.getElementById('msg-input').value;
+            if(!txt) return;
+            db.ref('global_chats').push({ sender: myName, text: txt, time: Date.now() });
+            document.getElementById('msg-input').value = "";
+        }
+
+        function loadMessages() {
+            db.ref('global_chats').limitToLast(50).on('value', (snap) => {
+                const box = document.getElementById('msg-box');
+                box.innerHTML = "";
+                snap.forEach((msg) => {
+                    const data = msg.val();
+                    const type = (data.sender === myName) ? 'msg-me' : 'msg-them';
+                    box.innerHTML += `<div class="bubble ${type}">
+                        <small style="color:#00ff41; font-size:10px;">${data.sender}</small><br>${data.text}
+                    </div>`;
+                });
+                box.scrollTop = box.scrollHeight;
+            });
+        }
+    </script>
+</body>
+</html>
